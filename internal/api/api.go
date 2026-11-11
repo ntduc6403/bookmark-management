@@ -11,17 +11,17 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
-
+// Engine is an interface that defines the methods for starting the server and serving HTTP requests.
 type Engine interface {
 	Start() error
 	ServeHTTP(w http.ResponseWriter, req *http.Request)
 }
-
+// engine is a struct that implements the Engine interface and holds the Gin engine and configuration.
 type engine struct {
 	app *gin.Engine
 	cfg *Config
 }
-
+// NewEngine creates a new instance of the engine with the provided configuration.
 func NewEngine(cfg *Config) Engine {
 
 	app := &engine{
@@ -31,13 +31,15 @@ func NewEngine(cfg *Config) Engine {
 	app.InitRoutes()
 	return app
 }
-
+// Start starts the Gin server on the specified port from the configuration.
 func (e *engine) Start() error {
 	return e.app.Run(fmt.Sprintf(":%s", e.cfg.AppPort))
 }
+// ServeHTTP serves HTTP requests using the Gin engine.
 func (e *engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	e.app.ServeHTTP(w, req)
 }
+// InitRoutes initializes the routes for the Gin engine, including the health check and Swagger documentation endpoints.
 func (e *engine) InitRoutes() {
 	healthCheckSvc := service.NewHealthCheck(
 		e.cfg.ServiceName,
