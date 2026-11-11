@@ -1,0 +1,31 @@
+basePath: /
+definitions:
+  handler.HealthCheckResponse:
+    properties:
+      instance_id:
+        type: string
+      message:
+        type: string
+      service_name:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API documentation for the Bookmark  service.
+  title: Bookmark API
+  version: "1.0"
+paths:
+  /health-check:
+    get:
+      description: Returns the health status of the service, including service name
+        and instance ID.
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.HealthCheckResponse'
+      summary: HealthCheck endpoint
+      tags:
+      - HealthCheck
+swagger: "2.0"
