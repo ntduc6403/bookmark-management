@@ -1,0 +1,46 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API documentation for the Bookmark  service.",
+        "title": "Bookmark API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/health-check": {
+            "get": {
+                "description": "Returns the health status of the service, including service name and instance ID.",
+                "tags": [
+                    "HealthCheck"
+                ],
+                "summary": "HealthCheck endpoint",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.HealthCheckResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handler.HealthCheckResponse": {
+            "type": "object",
+            "properties": {
+                "instance_id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
