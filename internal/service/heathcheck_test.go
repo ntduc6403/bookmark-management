@@ -9,39 +9,57 @@ import (
 var defaultServiceName string = "bookmark_service"
 
 func TestGetInstanceID(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
-		name string
-
-		expectedId     string
-		expectedError  error
-		shouldGenerate bool
+		name               string
+		expectedInstanceID string
+		want               string
 	}{
 		{
-			name:          "Existing instance ID",
-			expectedId:    "test-id",
-			expectedError: nil,
+			name:               "Valid InstanceID",
+			expectedInstanceID: "123",
 		},
 		{
-			name:           "Empty instance ID",
-			expectedId:     "",
-			expectedError:  nil,
-			shouldGenerate: true,
+			name:               "Empty InstanceID",
+			expectedInstanceID: "",
 		},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			svc := NewHealthCheck(defaultServiceName, tc.expectedId)
-			instanceId, err := svc.GetInstanceID()
-			assert.ErrorIs(t, err, tc.expectedError)
-			if tc.shouldGenerate {
-				assert.NotEmpty(t, instanceId)
-				assert.NotEqual(t, tc.expectedId, instanceId)
-			} else {
-				assert.Equal(t, tc.expectedId, instanceId)
-			}
+			svc := NewHealthCheck(defaultServiceName, tt.expectedInstanceID)
 
+			instanceID := svc.GetInstanceID()
+
+			assert.Equal(t, tt.expectedInstanceID, instanceID)
+		})
+	}
+}
+func TestGetServiceName(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                string
+		expectedServiceName string
+	}{
+		{
+			name:                "Valid service name",
+			expectedServiceName: "health-check",
+		},
+		{
+			name:                "Empty service name",
+			expectedServiceName: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			svc := NewHealthCheck(tt.expectedServiceName, " ")
+
+			serviceName := svc.GetServiceName()
+
+			assert.Equal(t, tt.expectedServiceName, serviceName)
 		})
 	}
 }

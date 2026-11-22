@@ -39,12 +39,8 @@ func NewHealthCheck(healthCheckSvc service.HealthCheck) HealthCheck {
 // @Router /health-check [get]
 func (h *healthCheckHandler) HealthCheck(c *gin.Context) {
 	serviceName := h.HealthCheckService.GetServiceName()
-	instanceID, err := h.HealthCheckService.GetInstanceID()
+	instanceID := h.HealthCheckService.GetInstanceID()
 
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-		return
-	}
 	c.JSON(http.StatusOK, HealthCheckResponse{
 		Message:     "OK",
 		ServiceName: serviceName,

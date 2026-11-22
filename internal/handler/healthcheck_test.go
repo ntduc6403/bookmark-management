@@ -37,27 +37,11 @@ func TestHealthCheckHandler(t *testing.T) {
 			setupMockService: func(ctx context.Context) *mocks.HealthCheck {
 				mockService := &mocks.HealthCheck{}
 				mockService.On("GetServiceName").Return("bookmark_service")
-				mockService.On("GetInstanceID").Return("text-id", nil)
+				mockService.On("GetInstanceID").Return("text-id")
 				return mockService
 			},
 			expectedStatus:   http.StatusOK,
 			expectedResponse: `{"message":"OK","service_name":"bookmark_service","instance_id":"text-id"}`,
-		},
-		{
-			name: "Service failed",
-			setupRequest: func(ctx *gin.Context) {
-
-				ctx.Request = httptest.NewRequest("GET", "/health-check", nil)
-			},
-
-			setupMockService: func(ctx context.Context) *mocks.HealthCheck {
-				mockService := &mocks.HealthCheck{}
-				mockService.On("GetServiceName").Return("bookmark_service")
-				mockService.On("GetInstanceID").Return("", testErr)
-				return mockService
-			},
-			expectedStatus:   http.StatusInternalServerError,
-			expectedResponse: `{"error":"Internal Server Error"}`,
 		},
 	}
 	for _, tc := range testCases {

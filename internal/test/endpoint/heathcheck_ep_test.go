@@ -28,7 +28,7 @@ func TestHealthCheckEndPoint(t *testing.T) {
 				return respRecorder
 			},
 			expectedStatus:   http.StatusOK,
-			expectedResponse: `"message":"OK","service_name":"","instance_id":`,
+			expectedResponse: `"message":"OK","service_name":"bookmark","instance_id":"123"`,
 		},
 		{
 			name: "wrong endpoint",
@@ -49,7 +49,7 @@ func TestHealthCheckEndPoint(t *testing.T) {
 
 			t.Parallel()
 
-			testAPI := api.NewEngine(&api.Config{})
+			testAPI := api.NewEngine(&api.Config{ServiceName: "bookmark", InstanceID: "123"})
 
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatus, recorder.Code)
