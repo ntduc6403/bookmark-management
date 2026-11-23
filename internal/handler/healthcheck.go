@@ -40,7 +40,7 @@ func NewHealthCheck(healthCheckSvc service.HealthCheck) HealthCheck {
 // @Router /health-check [get]
 func (h *healthCheckHandler) HealthCheck(c *gin.Context) {
 
-	err := h.HealthCheckService.CheckRedis(c.Request.Context())
+	err := h.HealthCheckService.CheckRedis(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Internal Server Error",

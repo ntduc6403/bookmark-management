@@ -1,13 +1,11 @@
 package service
 
 import (
-	"context"
 	"errors"
 	"testing"
 
 	"github.com/ntduc6403/bookmark-management/internal/repository/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 var defaultServiceName string = "bookmark_service"
@@ -90,11 +88,13 @@ func TestCheckRedis(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			ctx := t.Context()
+
 			mockRepo := mocks.NewHealthCheck(t)
-			mockRepo.On("Ping", mock.Anything).Return(tt.pingErr).Once()
+			mockRepo.On("Ping", ctx).Return(tt.pingErr).Once()
 
 			svc := NewHealthCheck(defaultServiceName, "inst-1", mockRepo)
-			err := svc.CheckRedis(context.Background())
+			err := svc.CheckRedis(ctx)
 
 			if tt.expectErr {
 				assert.Error(t, err)

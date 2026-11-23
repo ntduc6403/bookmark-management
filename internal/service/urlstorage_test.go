@@ -9,16 +9,17 @@ import (
 	"github.com/ntduc6403/bookmark-management/internal/repository/mocks"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+
 )
 
 func TestShortenUrl(t *testing.T) {
+	t.Parallel()
 	type testCase struct {
 		name      string
 		url       string
 		expTime   int
 		genCode   func(length int) (string, error)
-		setupMock func(repo *mocks.URLStorage)
+		setupMock func(ctx context.Context) *mocks.URLStorage
 		wantCode  string
 		wantErr   error
 	}
@@ -36,13 +37,11 @@ func TestShortenUrl(t *testing.T) {
 				assert.Equal(t, urlCodeLength, length)
 				return "AbC123x", nil
 			},
-			setupMock: func(repo *mocks.URLStorage) {
-				repo.On("GetURL", mock.Anything, "AbC123x").
-					Return("", redis.Nil).
-					Once()
-				repo.On("StoreURL", mock.Anything, "AbC123x", targetURL, defaultURLExp).
-					Return(nil).
-					Once()
+			setupMock: func(ctx context.Context) *mocks.URLStorage {
+				repo := mocks.NewURLStorage(t)
+				repo.On("GetURL", ctx, "AbC123x").Return("", redis.Nil)
+				repo.On("StoreURL", ctx, "AbC123x", targetURL, defaultURLExp).Return(nil)
+				return repo
 			},
 			wantCode: "AbC123x",
 			wantErr:  nil,
@@ -55,13 +54,11 @@ func TestShortenUrl(t *testing.T) {
 				assert.Equal(t, urlCodeLength, length)
 				return "XyZ987w", nil
 			},
-			setupMock: func(repo *mocks.URLStorage) {
-				repo.On("GetURL", mock.Anything, "XyZ987w").
-					Return("", redis.Nil).
-					Once()
-				repo.On("StoreURL", mock.Anything, "XyZ987w", targetURL, 3600*time.Second).
-					Return(nil).
-					Once()
+			setupMock: func(ctx context.Context) *mocks.URLStorage {
+				repo := mocks.NewURLStorage(t)
+				repo.On("GetURL",ctx, "XyZ987w").Return("", redis.Nil)
+				repo.On("StoreURL", ctx, "XyZ987w", targetURL, 3600*time.Second).Return(nil)
+				return repo
 			},
 			wantCode: "XyZ987w",
 			wantErr:  nil,
@@ -79,16 +76,12 @@ func TestShortenUrl(t *testing.T) {
 					return code, nil
 				}
 			}(),
-			setupMock: func(repo *mocks.URLStorage) {
-				repo.On("GetURL", mock.Anything, "DupCode").
-					Return("https://existing-url.com", nil).
-					Once()
-				repo.On("GetURL", mock.Anything, "NewCode").
-					Return("", redis.Nil).
-					Once()
-				repo.On("StoreURL", mock.Anything, "NewCode", targetURL, 600*time.Second).
-					Return(nil).
-					Once()
+			setupMock: func(ctx context.Context) *mocks.URLStorage {
+				repo := mocks.NewURLStorage(t)
+				repo.On("GetURL", ctx, "DupCode").Return("https://existing-url.com", nil)
+				repo.On("GetURL", ctx, "NewCode").Return("", redis.Nil)
+				repo.On("StoreURL", ctx, "NewCode", targetURL, 600*time.Second).Return(nil)
+				return repo
 			},
 			wantCode: "NewCode",
 			wantErr:  nil,
@@ -100,8 +93,9 @@ func TestShortenUrl(t *testing.T) {
 			genCode: func(length int) (string, error) {
 				return "", genErr
 			},
-			setupMock: func(repo *mocks.URLStorage) {
-			
+			setupMock: func(ctx context.Context) *mocks.URLStorage {
+
+				return nil
 			},
 			wantCode: " ",
 			wantErr:  genErr,
@@ -113,10 +107,10 @@ func TestShortenUrl(t *testing.T) {
 			genCode: func(length int) (string, error) {
 				return "ErrCode", nil
 			},
-			setupMock: func(repo *mocks.URLStorage) {
-				repo.On("GetURL", mock.Anything, "ErrCode").
-					Return("", dbErr).
-					Once()
+			setupMock: func(ctx context.Context) *mocks.URLStorage {
+				repo := mocks.NewURLStorage(t)
+				repo.On("GetURL", ctx, "ErrCode").Return("", dbErr)
+				return repo
 			},
 			wantCode: "",
 			wantErr:  dbErr,
@@ -128,13 +122,12 @@ func TestShortenUrl(t *testing.T) {
 			genCode: func(length int) (string, error) {
 				return "SaveErr", nil
 			},
-			setupMock: func(repo *mocks.URLStorage) {
-				repo.On("GetURL", mock.Anything, "SaveErr").
-					Return("", redis.Nil).
-					Once()
-				repo.On("StoreURL", mock.Anything, "SaveErr", targetURL, defaultURLExp).
-					Return(dbErr).
-					Once()
+			setupMock: func(ctx context.Context) *mocks.URLStorage {
+				repo := mocks.NewURLStorage(t)
+				repo.On("GetURL", ctx, "SaveErr").Return("", redis.Nil)
+				repo.On("StoreURL",ctx, "SaveErr", targetURL, defaultURLExp).Return(dbErr)
+
+				return repo
 			},
 			wantCode: " ",
 			wantErr:  dbErr,
@@ -143,17 +136,16 @@ func TestShortenUrl(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			mockRepo := mocks.NewURLStorage(t)
-			if tc.setupMock != nil {
-				tc.setupMock(mockRepo)
-			}
+			t.Parallel()
+			ctx := t.Context()
 
+			mockRepo := tc.setupMock(ctx)
 			svc := &shortenUrl{
 				repo:    mockRepo,
 				genCode: tc.genCode,
 			}
 
-			gotCode, gotErr := svc.ShortenUrl(context.Background(), tc.url, tc.expTime)
+			gotCode, gotErr := svc.ShortenUrl(ctx, tc.url, tc.expTime)
 
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, gotErr, tc.wantErr)

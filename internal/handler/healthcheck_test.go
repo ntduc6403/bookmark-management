@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ntduc6403/bookmark-management/internal/service/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 var testErr = errors.New("test error")
@@ -37,8 +36,8 @@ func TestHealthCheckHandler(t *testing.T) {
 			},
 
 			setupMockService: func(ctx context.Context) *mocks.HealthCheck {
-				mockService := &mocks.HealthCheck{}
-				mockService.On("CheckRedis", mock.Anything).Return(nil)
+				mockService := mocks.NewHealthCheck(t)
+				mockService.On("CheckRedis", ctx).Return(nil)
 				mockService.On("GetServiceName").Return("bookmark_service")
 				mockService.On("GetInstanceID").Return("text-id")
 				return mockService
@@ -52,8 +51,8 @@ func TestHealthCheckHandler(t *testing.T) {
 				ctx.Request = httptest.NewRequest(http.MethodGet, "/health-check", nil)
 			},
 			setupMockService: func(ctx context.Context) *mocks.HealthCheck {
-				mockService := &mocks.HealthCheck{}
-				mockService.On("CheckRedis", mock.Anything).Return(testErr)
+				mockService := mocks.NewHealthCheck(t)
+				mockService.On("CheckRedis", ctx).Return(testErr)
 				return mockService
 			},
 			expectedStatus:   http.StatusInternalServerError,

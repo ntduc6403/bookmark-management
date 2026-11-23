@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ntduc6403/bookmark-management/internal/service/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestShortenURLHandler(t *testing.T) {
@@ -30,7 +29,7 @@ func TestShortenURLHandler(t *testing.T) {
 				mockService := &mocks.ShortenUrl{}
 				mockService.On(
 					"ShortenUrl",
-					mock.Anything,
+					ctx,
 					"https://google.com",
 					60,
 				).Return("abc123", nil)
@@ -74,7 +73,7 @@ func TestShortenURLHandler(t *testing.T) {
 				mockService := &mocks.ShortenUrl{}
 				mockService.On(
 					"ShortenUrl",
-					mock.Anything,
+					ctx,
 					"https://google.com",
 					60,
 				).Return("", testErr)

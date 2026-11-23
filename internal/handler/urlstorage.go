@@ -55,7 +55,7 @@ func (h *ShortenURLHandler) Shorten(c *gin.Context) {
 		return
 	}
 	code, err := h.service.ShortenUrl(
-		c.Request.Context(),
+		c,
 		req.URL,
 		req.ExpTime,
 	)
