@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/ntduc6403/bookmark-management/internal/api"
+	"github.com/ntduc6403/bookmark-management/pkg/redis"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,7 +50,7 @@ func TestHealthCheckEndPoint(t *testing.T) {
 
 			t.Parallel()
 
-			testAPI := api.NewEngine(&api.Config{ServiceName: "bookmark", InstanceID: "123"})
+			testAPI := api.NewEngine(&api.Config{ServiceName: "bookmark", InstanceID: "123"}, redis.InitMockRedis(t))
 
 			recorder := tc.setupTestHTTP(testAPI)
 			assert.Equal(t, tc.expectedStatus, recorder.Code)

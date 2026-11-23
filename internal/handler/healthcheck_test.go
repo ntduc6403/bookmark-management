@@ -13,6 +13,7 @@ import (
 )
 
 var testErr = errors.New("test error")
+
 // TestHealthCheckHandler tests the HealthCheck handler for various scenarios.
 func TestHealthCheckHandler(t *testing.T) {
 	t.Parallel()
@@ -35,13 +36,27 @@ func TestHealthCheckHandler(t *testing.T) {
 			},
 
 			setupMockService: func(ctx context.Context) *mocks.HealthCheck {
-				mockService := &mocks.HealthCheck{}
+				mockService := mocks.NewHealthCheck(t)
+				mockService.On("CheckRedis", ctx).Return(nil)
 				mockService.On("GetServiceName").Return("bookmark_service")
 				mockService.On("GetInstanceID").Return("text-id")
 				return mockService
 			},
 			expectedStatus:   http.StatusOK,
 			expectedResponse: `{"message":"OK","service_name":"bookmark_service","instance_id":"text-id"}`,
+		},
+		{
+			name: "Redis check failed",
+			setupRequest: func(ctx *gin.Context) {
+				ctx.Request = httptest.NewRequest(http.MethodGet, "/health-check", nil)
+			},
+			setupMockService: func(ctx context.Context) *mocks.HealthCheck {
+				mockService := mocks.NewHealthCheck(t)
+				mockService.On("CheckRedis", ctx).Return(testErr)
+				return mockService
+			},
+			expectedStatus:   http.StatusInternalServerError,
+			expectedResponse: `{"message":"Internal Server Error"}`,
 		},
 	}
 	for _, tc := range testCases {
