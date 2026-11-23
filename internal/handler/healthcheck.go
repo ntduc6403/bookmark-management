@@ -36,8 +36,17 @@ func NewHealthCheck(healthCheckSvc service.HealthCheck) HealthCheck {
 // @Description Returns the health status of the service, including service name and instance ID.
 // @Tags HealthCheck
 // @Success 200 {object} HealthCheckResponse
+// @Failure 500 {object} map[string]string
 // @Router /health-check [get]
 func (h *healthCheckHandler) HealthCheck(c *gin.Context) {
+
+	err := h.HealthCheckService.CheckRedis(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Internal Server Error",
+		})
+		return
+	}
 	serviceName := h.HealthCheckService.GetServiceName()
 	instanceID := h.HealthCheckService.GetInstanceID()
 

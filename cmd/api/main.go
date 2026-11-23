@@ -1,6 +1,11 @@
 package main
 
-import "github.com/ntduc6403/bookmark-management/internal/api"
+import (
+	"log"
+
+	"github.com/ntduc6403/bookmark-management/internal/api"
+	"github.com/ntduc6403/bookmark-management/pkg/redis"
+)
 
 // @title Bookmark API
 // @version 1.0
@@ -12,10 +17,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	client, err := redis.NewClient("")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Close()
 
-	app := api.NewEngine(cfg)
+	
+	app := api.NewEngine(cfg, client)
 	err = app.Start()
 	if err != nil {
 		panic(err)
 	}
+
 }
